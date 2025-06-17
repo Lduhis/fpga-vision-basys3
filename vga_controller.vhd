@@ -71,10 +71,10 @@ begin
         if v_Count < v_Visible_Area then
             v_Pulse     <= '0';
             v_Visible   <= '1';
-        elsif h_Count < v_Visible_Area + v_Front_Porch then
+        elsif v_Count < v_Visible_Area + v_Front_Porch then
             v_Pulse     <= '0';
             v_Visible   <= '0';
-        elsif h_Count < v_Visible_Area + v_Front_Porch + v_Synch_Pulse then
+        elsif v_Count < v_Visible_Area + v_Front_Porch + v_Synch_Pulse then
             v_Pulse     <= '1';
             v_Visible   <= '0';
         elsif v_Count < v_Whole_Line then
