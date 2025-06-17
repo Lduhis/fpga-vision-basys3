@@ -1,0 +1,10 @@
+# Her şeyi ignore et
+*
+
+# Ancak bazı dosyaları ve dizinleri koru
+!*.vhd
+!*.vhdl
+
+# .gitignore'un kendisini ve diğer kontrol dosyalarını da korumak isteyebilirsin
+!.gitignore
+!README.md
