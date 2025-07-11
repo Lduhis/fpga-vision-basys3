@@ -1,83 +1,62 @@
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
-
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
+use work.ram_pkg.all;
 
 entity frame_buffer is
---  Port ( );
+  generic (
+    RAM_WIDTH : integer := 12;
+    RAM_DEPTH : integer := 131072
+  );
+  port (
+    Clka  : in std_logic;
+    Clkb  : in std_logic;
+    Wea   : in std_logic;
+    Addra : in std_logic_vector((clogb2(RAM_DEPTH) - 1) downto 0);
+    Addrb : in std_logic_vector((clogb2(RAM_DEPTH) - 1) downto 0);
+    Dina  : in std_logic_vector(RAM_WIDTH - 1 downto 0);
+    Doutb : out std_logic_vector(RAM_WIDTH - 1 downto 0)
+
+  );
 end frame_buffer;
 
 architecture Behavioral of frame_buffer is
 
-component fifo_generator_0 IS
-Port (rst           : IN STD_LOGIC;
-    wr_clk          : IN STD_LOGIC;
-    rd_clk          : IN STD_LOGIC;
-    din             : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    wr_en           : IN STD_LOGIC;
-    rd_en           : IN STD_LOGIC;
-    dout            : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-    full            : OUT STD_LOGIC;
-    almost_full     : OUT STD_LOGIC;
-    empty           : OUT STD_LOGIC;
-    almost_empty    : OUT STD_LOGIC;
-    wr_rst_busy     : OUT STD_LOGIC;
-    rd_rst_busy     : OUT STD_LOGIC
+  component xilinx_simple_dual_port_2_clock_ram is
+    generic (
+      RAM_WIDTH       : integer := 12; -- Specify RAM data width
+      RAM_DEPTH       : integer := 131072; -- Specify RAM depth (number of entries)
+      RAM_PERFORMANCE : string  := "LOW_LATENCY" -- Select "HIGH_PERFORMANCE" or "LOW_LATENCY" 
+    );
+
+    port (
+      addra : in std_logic_vector((clogb2(RAM_DEPTH) - 1) downto 0); -- Write address bus, width determined from RAM_DEPTH
+      addrb : in std_logic_vector((clogb2(RAM_DEPTH) - 1) downto 0); -- Read address bus, width determined from RAM_DEPTH
+      dina  : in std_logic_vector(RAM_WIDTH - 1 downto 0); -- RAM input data
+      clka  : in std_logic; -- Write Clock
+      clkb  : in std_logic; -- Read Clock
+      wea   : in std_logic; -- Write enable
+      doutb : out std_logic_vector(RAM_WIDTH - 1 downto 0) -- RAM output data
+    );
+
+  end component xilinx_simple_dual_port_2_clock_ram;
+
+begin
+
+  Inst_xilinx_simple_dual_port_2_clock_ram : xilinx_simple_dual_port_2_clock_ram
+  generic map(
+    RAM_WIDTH => RAM_WIDTH,
+    RAM_DEPTH => RAM_DEPTH
+  )
+  port map
+  (
+    addra => Addra,
+    addrb => Addrb,
+    dina  => Dina,
+    clka  => Clka,
+    clkb  => Clkb,
+    wea   => Wea,
+    doutb => Doutb
   );
-end component fifo_generator_0;    
-
-signal rst : std_logic := '0';
-signal wr_clk : std_logic := '0';
-signal rd_clk : std_logic := '0';
-signal din : std_logic_vector(15 downto 0) := (others => '0');
-signal wr_en : std_logic := '0';
-signal rd_en : std_logic := '0';
-signal dout : std_logic_vector(15 downto 0);
-signal full : std_logic;
-signal almost_full : std_logic;
-signal empty : std_logic;       
---
-signal data_in_buffer : std_logic_vector(15 downto 0) := (others => '0');
-signal data_out_buffer : std_logic_vector(15 downto 0) := (others => '0');
-
-begin
-
--- FIFO Instance
-fifo_inst: fifo_generator_0
-port map (
-    rst             => rst,
-    wr_clk          => wr_clk,
-    rd_clk          => rd_clk,
-    din             => din,
-    wr_en           => wr_en,
-    rd_en           => rd_en,
-    dout            => dout,
-    full            => full,
-    almost_full     => almost_full,
-    empty           => empty,
-    almost_empty    => '0',     -- Not used
-    wr_rst_busy     => '0',     -- Not used
-    rd_rst_busy     => '0'      -- Not used
-);
-
--- Write Process
-write_process: process(wr_clk)
-begin
-    if rising_edge(wr_clk) then
-        if wr_en = '1' then
-            din <= data_in_buffer;
-        end if;   
-    end if;
-end process write_process;
--- Read Process
-read_process: process(rd_clk)
-begin
-    if rising_edge(rd_clk) then
-        if rd_en = '1' then
-            data_out_buffer <= dout;
-        end if;
-    end if;
-end process read_process;
 
 end Behavioral;
-
